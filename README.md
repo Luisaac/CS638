@@ -1,4 +1,4 @@
-# CS638
+# Python Crawler
 Materials for CS 638
 
 Lu, Zhenda
