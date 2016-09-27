@@ -27,10 +27,11 @@ def get_single_item_data(item_url,f):
 	soup = BeautifulSoup(plain_text)
 	
 	h1 = soup.find('h1')
-	title = h1.find('a').string.strip()
+	title = h1.find('a').string.strip().replace(',','')
 	
 	gameInfo = soup.findAll('div', {'class': 'gameInfo-list'})
-	
+	if gameInfo[0].find('div') is None:
+		return
 	temp = gameInfo[0].find('div').get_text().strip()
 	temp = temp.split(': ')
 	releaseDate = temp[1]	
