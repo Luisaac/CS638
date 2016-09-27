@@ -34,6 +34,8 @@ def get_single_item_data(item_url,f):
 		return
 	temp = gameInfo[0].find('div').get_text().strip()
 	temp = temp.split(': ')
+	if len(temp)<2
+		return
 	releaseDate = temp[1]	
 
 	link = gameInfo[0].find('a')
@@ -41,8 +43,13 @@ def get_single_item_data(item_url,f):
 	if link is not None:
 		esrb = link.string.strip().split(' ')[0]
 	
-	temp = gameInfo[1].findAll('div')
 
+
+	temp = gameInfo[1].findAll('div')
+	
+	str = temp[0].get_text()
+	if 'Genre' not in str:
+		return;
 	genre = temp[0].find('a')
 	if genre is not None:
 		genre = genre.string.strip()
@@ -51,22 +58,29 @@ def get_single_item_data(item_url,f):
 	
 	publisher = ''
 	if len(temp)>1:
+		str = temp[1].get_text()
+        	if 'Publisher' not in str:
+			return;
 		publisher = temp[1].find('a')
 		if publisher is not None:
 			publisher = publisher.string.strip()
+			publisher = publisher.split(',')[0]
 
 	developer = ''
 	if len(temp)>2:
 		developer = temp[2].find('a')
 		if developer is not None:
 			developer = developer.string.strip()
+			developer = developer.split(',')[0]
 	
 	rating = soup.findAll('div', {'class': 'ratingValue'})
 	if len(rating)<2:
 		return
 	ign = rating[0].get_text().strip()
 	community = rating[1].get_text().strip()	
-	f.write(title+','+releaseDate+','+esrb+','+genre+','+publisher+','+developer+','+ign+','+community+'\n')
-
+	try:
+		f.write(title+','+releaseDate+','+esrb+','+genre+','+publisher+','+developer+','+ign+','+community+'\n')
+	except UnicodeEncodeError:
+		return
 
 trade_spider(5000)
