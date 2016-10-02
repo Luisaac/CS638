@@ -1,12 +1,16 @@
-import time
 import requests
+import urllib
+import os
 from bs4 import BeautifulSoup
+
 
 
 
 def trade_spider(max_pages):
 	startIndex = 0
 	f = open('IGN.csv','w')
+	counter = -1
+	number = 0
 	while startIndex <= max_pages:
 		url = 'http://www.ign.com/games/reviews?platformSlug=pc&startIndex='+ str(startIndex) +'&sortBy=score'
 		source_code = requests.get(url)
@@ -15,12 +19,18 @@ def trade_spider(max_pages):
 		for link in soup.findAll('h3'):
 			temp = link.find('a')
 			href = 'http://www.ign.com/' + temp.get('href')
-			time.sleep(.5)
-			get_single_item_data(href,f)
+			if(get_single_item_data(href,f,number)==1):
+				s ='dir'+str(counter)
+				if(number%100 == 0):
+					counter+=1
+					s = 'dir' + str(counter)
+					os.makedirs(s)
+				urllib.urlretrieve(href, s +'/'+ href.replace('/','@')+'.html')
+				number+=1
 		startIndex += 25
 
 
-def get_single_item_data(item_url,f):
+def get_single_item_data(item_url,f,num):
 	url = item_url
 	source_code = requests.get(url)
 	plain_text = source_code.text
@@ -31,11 +41,11 @@ def get_single_item_data(item_url,f):
 	
 	gameInfo = soup.findAll('div', {'class': 'gameInfo-list'})
 	if gameInfo[0].find('div') is None:
-		return
+		return 0
 	temp = gameInfo[0].find('div').get_text().strip()
 	temp = temp.split(': ')
-	if len(temp)<2
-		return
+	if len(temp)<2:
+		return 0
 	releaseDate = temp[1]	
 
 	link = gameInfo[0].find('a')
@@ -47,9 +57,9 @@ def get_single_item_data(item_url,f):
 
 	temp = gameInfo[1].findAll('div')
 	
-	str = temp[0].get_text()
-	if 'Genre' not in str:
-		return;
+	s = temp[0].get_text()
+	if 'Genre' not in s:
+		return 0
 	genre = temp[0].find('a')
 	if genre is not None:
 		genre = genre.string.strip()
@@ -58,9 +68,9 @@ def get_single_item_data(item_url,f):
 	
 	publisher = ''
 	if len(temp)>1:
-		str = temp[1].get_text()
-        	if 'Publisher' not in str:
-			return;
+		s = temp[1].get_text()
+        	if 'Publisher' not in s:
+			return 0
 		publisher = temp[1].find('a')
 		if publisher is not None:
 			publisher = publisher.string.strip()
@@ -75,12 +85,12 @@ def get_single_item_data(item_url,f):
 	
 	rating = soup.findAll('div', {'class': 'ratingValue'})
 	if len(rating)<2:
-		return
+		return 0
 	ign = rating[0].get_text().strip()
 	community = rating[1].get_text().strip()	
 	try:
-		f.write(title+','+releaseDate+','+esrb+','+genre+','+publisher+','+developer+','+ign+','+community+'\n')
+		f.write(str(num)+','+title+','+releaseDate+','+esrb+','+genre+','+publisher+','+developer+','+ign+','+community+'\n')
 	except UnicodeEncodeError:
-		return
-
+		return 0
+	return 1
 trade_spider(5000)
